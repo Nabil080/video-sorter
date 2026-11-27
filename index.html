@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- connect-src 'none': the page can't send anything anywhere, even if it wanted to -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' blob:; media-src blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+
+  <title>Video Sorter</title>
+  <meta name="description" content="Go through your screen recordings quickly and decide what to keep or delete. Runs in your browser, your videos never leave your computer.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Video Sorter</h1>
+
+    <span class="count">To sort <b id="count-unsorted">0</b></span>
+    <span class="count keep">Keep <b id="count-keep">0</b></span>
+    <span class="count delete">Delete <b id="count-delete">0</b></span>
+
+    <span class="spacer"></span>
+
+    <input id="filter" type="search" placeholder="Filter names (Replay, -Replay)" aria-label="Filter by name">
+    <select id="sort" aria-label="Sort">
+      <option value="biggest">Biggest first</option>
+      <option value="smallest">Smallest first</option>
+      <option value="oldest">Oldest first</option>
+      <option value="newest">Newest first</option>
+    </select>
+    <label><input type="checkbox" id="only-unsorted"> Only unsorted</label>
+
+    <button id="export">Export list</button>
+    <button id="delete-marked" class="danger" hidden>Delete marked...</button>
+    <button id="about-button">About</button>
+  </header>
+
+  <p id="read-only" class="banner" hidden>
+    This browser can't delete files, only Chrome, Edge and other Chromium browsers can.
+    You can still watch and mark your videos, then use <b>Export list</b> to get the files to delete.
+    You'll also have to pick your folders again on each visit.
+  </p>
+
+  <main>
+    <aside>
+      <div id="folders">
+        <div class="folders-header">
+          <span>Folders</span>
+          <button id="add-folder" class="small">+ Add folder</button>
+        </div>
+        <ul id="folder-list"></ul>
+        <button id="reconnect" class="small accent" hidden>Allow access again</button>
+        <input id="folder-input" type="file" webkitdirectory multiple hidden>
+      </div>
+
+      <div id="list"></div>
+    </aside>
+
+    <section id="viewer">
+      <div id="welcome">
+        <h2>Sort your recordings, fast</h2>
+        <p>
+          Pick the folder with your videos (OBS recordings, game clips, anything).
+          Watch each one, skim it with the thumbnails, then mark it <b>keep</b> or <b>delete</b>.
+          The biggest files come first, so a few decisions free a lot of space.
+        </p>
+        <p><button id="choose-folder" class="accent">Choose a folder</button></p>
+        <p class="muted">
+          Your videos are read from your disk and never uploaded.
+          <span id="welcome-delete-note">Nothing is deleted until you press <b>Delete marked...</b> and confirm.</span>
+        </p>
+      </div>
+
+      <div id="player" hidden>
+        <div id="title"></div>
+        <video id="player-video" controls preload="metadata"></video>
+        <p id="play-error" class="banner" hidden>Your browser can't play this file (probably its codec). You can still mark it.</p>
+        <div id="thumbnails"></div>
+
+        <div class="actions">
+          <button id="keep" class="keep">Keep <kbd>K</kbd></button>
+          <button id="delete" class="delete">Delete <kbd>D</kbd></button>
+          <button id="unsort">Unsort <kbd>U</kbd></button>
+          <button id="previous" aria-label="Previous video"><kbd>←</kbd></button>
+          <button id="next" aria-label="Next video"><kbd>→</kbd></button>
+        </div>
+
+        <p class="shortcuts">
+          <kbd>Space</kbd> play/pause · <kbd>J</kbd> <kbd>L</kbd> back/forward 30 s ·
+          <kbd>1</kbd> to <kbd>9</kbd> jump to 10 to 90 % · <kbd>+</kbd> <kbd>-</kbd> speed ·
+          click a thumbnail to jump there. Marking a video <b>delete</b> doesn't touch the file.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="about">
+    <h2>About</h2>
+
+    <h3>Privacy</h3>
+    <p>
+      Everything happens in your browser. Your videos are read from your disk and never uploaded:
+      the page's Content Security Policy (<code>connect-src 'none'</code>) blocks every network request,
+      and there are no analytics, cookies, or third-party scripts and fonts.
+      The page is hosted on GitHub Pages, so GitHub sees that you loaded it, like any website.
+    </p>
+    <p>
+      Your decisions and thumbnails are saved in this browser, for this site only.
+      Clearing your browsing data erases them. Your videos are not affected.
+    </p>
+
+    <h3>Deleting</h3>
+    <p>
+      <b>Delete marked...</b> permanently deletes the videos you marked, after you confirm.
+      They don't go to the Recycle Bin. The browser asks you to allow changes to the folder first.
+    </p>
+
+    <h3>Browsers</h3>
+    <p>
+      <b>Chrome, Edge</b> and most Chromium browsers: everything works and your folders are remembered.
+      After restarting the browser you may have to allow access again; pick "allow on every visit" if it's offered.
+      If yours shows the read-only message anyway, it has the File System Access API turned off.
+    </p>
+    <p>
+      <b>Firefox, Safari</b>: watch and mark only. Export the list and delete the files yourself.
+      You have to pick your folders again on each visit.
+    </p>
+    <p>
+      Playback depends on what your browser can decode: H.264 MP4 works everywhere, HEVC or MKV may not.
+    </p>
+
+    <p><button id="forget-everything" class="small">Forget everything (decisions, thumbnails, folders)</button></p>
+
+    <form method="dialog"><button class="accent">Close</button></form>
+  </dialog>
+
+  <div id="toast" role="status"></div>
+</body>
+</html>
